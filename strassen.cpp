@@ -126,133 +126,262 @@ void strassen_mat_mul(int** m1, int** m2, int** result, int dim)
 				mult_buf[i][j] = 0; 
 			}
 		}
-		//Compute P1
-		mat_sub(f,h,add_buf_1, n_over_2); 
-		if(dim > CROSS_OVER)
-		{
-			strassen_mat_mul(a, add_buf_1, mult_buf, n_over_2); 
-		}
-		else
-		{
-			standard_mat_mul(a, add_buf_1, mult_buf, n_over_2); 
-		}
-		//add to af + bh
-		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2); 
-		//add to cf + dh
-		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		//Compute P2 
-		mat_add(a,b,add_buf_1,n_over_2);
-		if(dim > CROSS_OVER)
-		{ 
-			strassen_mat_mul(add_buf_1, h, mult_buf, n_over_2); 
-		}
-		else
-		{
-			standard_mat_mul(add_buf_1, h, mult_buf, n_over_2); 
-		}
-		//add to af + bh
-		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2); 
-		//subtract from ae + bg
-		sub_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		
-		//Compute P3
-		mat_add(c,d,add_buf_1,n_over_2); 
-		if(dim > CROSS_OVER)
-		{ 
-			strassen_mat_mul(add_buf_1, e, mult_buf, n_over_2);
-		} 
-		else
-		{
-			standard_mat_mul(add_buf_1, e, mult_buf, n_over_2);
-		}
-		//add to ce + dg
-		add_res(mult_buf, result, n_over_2, 0, n_over_2, n_over_2); 
-		//subtract from cf + dh
-		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		//Compute P4
-		mat_sub(g,e,add_buf_1,n_over_2); 
-		if(dim > CROSS_OVER)
-		{ 
-			strassen_mat_mul(d, add_buf_1, mult_buf, n_over_2);
-		} 
-		else
-		{
-			standard_mat_mul(d, add_buf_1, mult_buf, n_over_2);
-		}
-		//add to ce + dg
-		add_res(mult_buf, result, n_over_2, 0, n_over_2, n_over_2); 
-		//add to ae + bg
-		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		//Compute P5
-		mat_add(a,d,add_buf_1,n_over_2); 
-		mat_add(e,h,add_buf_2,n_over_2); 
-		if(dim > CROSS_OVER)
-		{ 
-			strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		else
-		{
-			standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		//add to cf + dh
-		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
-		//add to ae + bg
-		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		//Compute P6
-		mat_sub(b,d,add_buf_1,n_over_2); 
-		mat_add(g,h,add_buf_2,n_over_2); 
-		if(dim > CROSS_OVER)
-		{
-			strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		else
-		{
-			standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		//add to ae + bg
-		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
-		zero_buf(mult_buf, n_over_2); 
-		//Compute P7
-		mat_sub(a,c,add_buf_1,n_over_2); 
-		mat_add(e,f,add_buf_2,n_over_2);
-		if(dim > CROSS_OVER)
-		{ 
-			strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		else
-		{
-			standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
-		}
-		//subtract from cf + dh
-		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
-		//zero_buf(mult_buf, n_over_2);
-		free(b);  
-		free(d);  
-		free(f);
-		free(h);   
-		
-		for(int i = 0; i < n_over_2; i++)
-		{
-			free(add_buf_1[i]);
-			free(add_buf_2[i]);
-			free(mult_buf[i]);
-		}
-		free(add_buf_1);
-		free(add_buf_2);
-		free(mult_buf);
-		
-
-
 	}
 	else
 	{
 		n_over_2 = dim/2 + 1; 
+		a = m1;
+		b = (int**)malloc(sizeof(int*)*n_over_2);
+		c = (int**)malloc(sizeof(int*)*n_over_2);
+		d = (int**)malloc(sizeof(int*)*n_over_2);
+		e = m2;  
+		f = (int**)malloc(sizeof(int*)*n_over_2);
+		g = (int**)malloc(sizeof(int*)*n_over_2);
+		h = (int**)malloc(sizeof(int*)*n_over_2);
+		add_buf_1 = (int**)malloc(sizeof(int*)*n_over_2);
+		add_buf_2 = (int**)malloc(sizeof(int*)*n_over_2);
+		mult_buf = (int**)malloc(sizeof(int*)*n_over_2);
+		for(int i = 0; i < n_over_2; i++)
+		{
+			b[i] = (int*)malloc(sizeof(int)*n_over_2);
+			c[i] = (int*)malloc(sizeof(int)*n_over_2);
+			d[i] = (int*)malloc(sizeof(int)*n_over_2);
+			f[i] = (int*)malloc(sizeof(int)*n_over_2);
+			g[i] = (int*)malloc(sizeof(int)*n_over_2);
+			h[i] = (int*)malloc(sizeof(int)*n_over_2);
+			add_buf_1[i] = (int*)malloc(sizeof(int)*n_over_2);
+			add_buf_2[i] = (int*)malloc(sizeof(int)*n_over_2);
+			mult_buf[i] = (int*)malloc(sizeof(int)*n_over_2);
+			if(i == n_over_2 - 1)
+			{
+				for(int j = 0; j < n_over_2; j++)
+				{
+					c[i][j] = 0;
+					d[i][j] = 0; 
+					g[i][j] = 0;
+					h[i][j] = 0;
+					add_buf_1[i][j] = 0; 
+					add_buf_2[i][j] = 0; 
+					mult_buf[i][j] = 0; 
+					if(j == n_over_2 - 1)
+					{
+						b[i][j] = 0; 
+						f[i][j] = 0;
+					}
+					else
+					{
+						b[i][j] = m1[i][n_over_2+j];
+						f[i][j] = m2[i][n_over_2+j];
+					}
+				}
+			}
+			else
+			{
+				for(int j = 0; j < n_over_2; j++)
+				{
+					if(j == n_over_2 - 1)
+					{
+						b[i][j] = 0; 
+						d[i][j] = 0; 
+						f[i][j] = 0; 
+						h[i][j] = 0; 
+					}
+					else
+					{
+						b[i][j] = m1[i][n_over_2+j];
+						d[i][j] = m1[i+n_over_2][n_over_2+j]; 
+						f[i][j] = m2[i][n_over_2+j];
+						h[i][j] = m2[i+n_over_2][n_over_2+j];  
+					}
+					c[i][j] = m1[i+n_over_2][j];
+					g[i][j] = m2[i+n_over_2][j];
+					add_buf_1[i][j] = 0; 
+					add_buf_2[i][j] = 0; 
+					mult_buf[i][j] = 0; 
+				}
+			}
+		}
 	}
+	/*for(int i = 0; i < n_over_2; i++)
+	{
+		for(int j = 0; j < n_over_2; j++)
+		{
+			cout << h[i][j] << " "; 
+		}
+		cout << endl; 
+	}*/
+	//Compute P1
+	mat_sub(f,h,add_buf_1, n_over_2); 
+	if(dim > CROSS_OVER)
+	{
+		strassen_mat_mul(a, add_buf_1, mult_buf, n_over_2); 
+	}
+	else
+	{
+		standard_mat_mul(a, add_buf_1, mult_buf, n_over_2); 
+	}
+	//add to af + bh and then cf + dh
+	if(dim % 2 == 0)
+	{
+		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2); 
+		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
+	}
+	else
+	{
+		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2-1); 
+		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2-1, n_over_2-1); 
+	}
+	//cout << "Tambe 108" << endl; 
+	zero_buf(mult_buf, n_over_2); 
+	//Compute P2 
+	mat_add(a,b,add_buf_1,n_over_2);
+	if(dim > CROSS_OVER)
+	{ 
+		strassen_mat_mul(add_buf_1, h, mult_buf, n_over_2); 
+	}
+	else
+	{
+		standard_mat_mul(add_buf_1, h, mult_buf, n_over_2); 
+	}
+	//add to af + bh then subtract from ae + bg
+	if(dim % 2 == 0)
+	{
+		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2); 
+		sub_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
+	}
+	else
+	{
+		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2-1); 
+		sub_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
+	}
+	zero_buf(mult_buf, n_over_2); 
+		
+	//Compute P3
+	mat_add(c,d,add_buf_1,n_over_2); 
+	if(dim > CROSS_OVER)
+	{ 
+		strassen_mat_mul(add_buf_1, e, mult_buf, n_over_2);
+	} 
+	else
+	{
+		standard_mat_mul(add_buf_1, e, mult_buf, n_over_2);
+	}
+	if(dim % 2 == 0)
+	{
+		//add to ce + dg
+		add_res(mult_buf, result, n_over_2, 0, n_over_2, n_over_2); 
+		//subtract from cf + dh
+		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
+	}
+	else
+	{
+		//add to ce + dg
+		add_res(mult_buf, result, n_over_2, 0, n_over_2-1, n_over_2); 
+		//subtract from cf + dh
+		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2-1, n_over_2-1);
+	}
+	zero_buf(mult_buf, n_over_2);  
+	//Compute P4
+	mat_sub(g,e,add_buf_1,n_over_2); 
+	if(dim > CROSS_OVER)
+	{ 
+		strassen_mat_mul(d, add_buf_1, mult_buf, n_over_2);
+	} 
+	else
+	{
+		standard_mat_mul(d, add_buf_1, mult_buf, n_over_2);
+	}
+	if(dim % 2 == 0)
+	{
+		//add to ce + dg
+		add_res(mult_buf, result, n_over_2, 0, n_over_2, n_over_2); 
+		//add to ae + bg
+		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
+	}
+	else
+	{
+		//add to ce + dg
+		add_res(mult_buf, result, n_over_2, 0, n_over_2-1, n_over_2); 
+		//add to ae + bg
+		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
+	}	
+	zero_buf(mult_buf, n_over_2); 
+	//Compute P5
+	mat_add(a,d,add_buf_1,n_over_2); 
+	mat_add(e,h,add_buf_2,n_over_2); 
+	if(dim > CROSS_OVER)
+	{	 
+		strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	else
+	{
+		standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	if(dim % 2 == 0)
+	{
+		//add to cf + dh
+		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
+		//add to ae + bg
+		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2);
+	}
+	else
+	{
+		//add to cf + dh
+		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2-1, n_over_2-1); 
+		//add to ae + bg
+		add_res(mult_buf, result, 0, 0, n_over_2, n_over_2);
+	} 
+	zero_buf(mult_buf, n_over_2); 
+	//Compute P6
+	mat_sub(b,d,add_buf_1,n_over_2); 
+	mat_add(g,h,add_buf_2,n_over_2); 
+	if(dim > CROSS_OVER)
+	{
+		strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	else
+	{
+		standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	//add to ae + bg - same for both even and odd cases
+	add_res(mult_buf, result, 0, 0, n_over_2, n_over_2); 
+	zero_buf(mult_buf, n_over_2); 
+	//Compute P7
+	mat_sub(a,c,add_buf_1,n_over_2); 
+	mat_add(e,f,add_buf_2,n_over_2);
+	if(dim > CROSS_OVER)
+	{ 
+		strassen_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	else
+	{
+		standard_mat_mul(add_buf_1, add_buf_2, mult_buf, n_over_2); 
+	}
+	if(dim % 2 == 0)
+	{
+		//subtract from cf + dh
+		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2, n_over_2); 
+	}
+	else
+	{
+		//subtract from cf + dh
+		sub_res(mult_buf, result, n_over_2, n_over_2, n_over_2-1, n_over_2-1);
+	}
+	//zero_buf(mult_buf, n_over_2);
+	free(b);  
+	free(d);  
+	free(f);
+	free(h);   
+	for(int i = 0; i < n_over_2; i++)
+	{
+		free(add_buf_1[i]);
+		free(add_buf_2[i]);
+		free(mult_buf[i]);
+	}
+	free(add_buf_1);
+	free(add_buf_2);
+	free(mult_buf);
+		
 
 }
 bool matrix_equal(int** a, int** b, int dim)
@@ -285,7 +414,7 @@ int main(int argc, char **argv)
      int dimension = atoi(argv[2]); 
      int filename = atoi(argv[3]); */
 
-   	 int test_dim = 1024; 
+   	 int test_dim = 513; 
 
      int** c = (int**)malloc(sizeof(int*) * test_dim); 
      int** d = (int**)malloc(sizeof(int*) * test_dim); 
@@ -323,7 +452,7 @@ int main(int argc, char **argv)
      	}
      	cout << endl; 
      }
-     cout << endl;*/ 
+     cout << endl;*/
      srand(time(NULL));
 	 clock_t begin_time = clock();
      strassen_mat_mul(c,d,result,test_dim);
