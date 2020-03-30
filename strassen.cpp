@@ -11,11 +11,6 @@ void standard_mat_mul(int** a, int** b, int** result, int dim)
 {
 	for(int i = 0; i < dim; i++)
 	{
-		//res->rows[i] = (int*)malloc(sizeof(int) * res->col_len); 
-		/*for(int m = 0; m < res->col_len; m++)
-		{
-			res->rows[i][m] = 0; 
-		}*/
 		for(int j = 0; j < dim; j++)
 		{
 			for(int k = 0; k < dim; k++)
@@ -203,14 +198,6 @@ void strassen_mat_mul(int** m1, int** m2, int** result, int dim)
 			}
 		}
 	}
-	/*for(int i = 0; i < n_over_2; i++)
-	{
-		for(int j = 0; j < n_over_2; j++)
-		{
-			cout << h[i][j] << " "; 
-		}
-		cout << endl; 
-	}*/
 	//Compute P1
 	mat_sub(f,h,add_buf_1, n_over_2); 
 	if(dim > CROSS_OVER)
@@ -232,7 +219,6 @@ void strassen_mat_mul(int** m1, int** m2, int** result, int dim)
 		add_res(mult_buf, result, 0, n_over_2, n_over_2, n_over_2-1); 
 		add_res(mult_buf, result, n_over_2, n_over_2, n_over_2-1, n_over_2-1); 
 	}
-	//cout << "Tambe 108" << endl; 
 	zero_buf(mult_buf, n_over_2); 
 	//Compute P2 
 	mat_add(a,b,add_buf_1,n_over_2);
@@ -585,10 +571,6 @@ int main(int argc, char **argv)
 
 
      }
-
-     //Check if std and strassen results are equal
-     //cout << "Are standard and strassen equal?:" << matrix_equal(result_3, result_std_3, test_dim) << endl;
-
 
 
     }
