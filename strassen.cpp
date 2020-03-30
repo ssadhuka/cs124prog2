@@ -2,9 +2,10 @@
 #include <climits>
 #include <cmath>
 #include <time.h>
+#include <fstream>
 using namespace std;
 
-#define CROSS_OVER 128
+int CROSS_OVER = 80; 
 
 void standard_mat_mul(int** a, int** b, int** result, int dim)
 {
@@ -401,122 +402,194 @@ bool matrix_equal(int** a, int** b, int dim)
 int main(int argc, char **argv) 
 {
 
-   if(0/*argc != 4*/)
+   if(argc > 4)
    {
-   	cout << "Invalid Argument Number" << endl; 
+   	cout << "Too many arguments" << endl; 
    }
    else
    {
-
-
    	 //read from command line - TODO file processing
-     /*int version = atoi(argv[1]); 
-     int dimension = atoi(argv[2]); 
-     int filename = atoi(argv[3]); */
-   	 srand(time(NULL));
-   	 int test_dim = 1024; 
-   	 double p = 0.03; 
-   	 double rand_n = 0; 
-
-     int** c = (int**)malloc(sizeof(int*) * test_dim); 
-     int** d = (int**)malloc(sizeof(int*) * test_dim); 
-     int** result = (int**)malloc(sizeof(int*) * test_dim); 
-     int** result_std = (int**)malloc(sizeof(int*) * test_dim); 
-     int** result_3 = (int**)malloc(sizeof(int*) * test_dim); 
-     int** result_std_3 = (int**)malloc(sizeof(int*) * test_dim); 
-     for(int i = 0; i < test_dim; i++)
+     int version = atoi(argv[1]); 
+     srand(time(NULL));
+     int test_dim;
+     int count; 
+     clock_t begin_time;
+     int** c; 
+     int** d; 
+     int** result; 
+     int** result_std; 
+     int** result_3; 
+     int** result_std_3; 
+     double rand_n; 
+     char* filename;
+     if(argc == 4)
      {
-     	d[i] = (int*)malloc(sizeof(int) * test_dim);
-     	c[i] = (int*)malloc(sizeof(int) * test_dim);
+     	test_dim = atoi(argv[2]); 
+     	filename = argv[3]; 
      }
-     for(int i = 0; i < test_dim; i++)
-     {	
-     	result[i] = (int*)malloc(sizeof(int) * test_dim);
-     	result_std[i] = (int*)malloc(sizeof(int) * test_dim);
-     	result_3[i] = (int*)malloc(sizeof(int) * test_dim);
-     	result_std_3[i] = (int*)malloc(sizeof(int) * test_dim);
-     	for(int j = 0; j < test_dim; j++)
+     int cur; 
+     if(version == 0) //grading output
+     {
+     	ifstream test_input; 
+     	test_input.open(filename);
+     	c = (int**)malloc(sizeof(int*) * test_dim); 
+    	d = (int**)malloc(sizeof(int*) * test_dim); 
+     	result = (int**)malloc(sizeof(int*) * test_dim);
+     	for(int i = 0; i < test_dim; i++)
      	{
-     		result[i][j] = 0; 
-     		result_std[i][j] = 0; 
-     		result_3[i][j] = 0; 
-     		result_std_3[i][j] = 0;
-     		if(j > i)
+     		result[i] = (int*)malloc(sizeof(int) * test_dim);
+     		c[i] = (int*)malloc(sizeof(int) * test_dim);
+     		for(int j = 0; j < test_dim; j++)
      		{
-     			rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
-     			if(rand_n < p)
+     			result[i][j] = 0; 
+     			test_input >> c[i][j];
+     		}
+     	} 
+     	for(int i = 0; i < test_dim; i++)
+     	{
+     		d[i] = (int*)malloc(sizeof(int) * test_dim);
+     		for(int j = 0; j < test_dim; j++)
+     		{
+     			test_input >> d[i][j];
+     		}
+     	} 
+     	strassen_mat_mul(c,d,result,test_dim);
+     	for(int i = 0; i < test_dim; i++)
+     	{
+     		cout << result[i][i] << "\n";
+     	}
+     	test_input.close(); 
+     }
+     else if(version == 1) //For experimental tests
+     {
+     	//Set Cross over to large value so that it is ignored
+     	//Therefore, only 1 step of strassen is automatically executed
+     	CROSS_OVER = 10000; 
+     	float strass_time; 
+     	float std_time; 
+     	float strass; 
+    	float std; 
+     	for(test_dim = 5; test_dim < 150; test_dim++)
+     	{
+     		c = (int**)malloc(sizeof(int*) * test_dim); 
+    		d = (int**)malloc(sizeof(int*) * test_dim); 
+     		result = (int**)malloc(sizeof(int*) * test_dim); 
+     		result_std = (int**)malloc(sizeof(int*) * test_dim); 
+     		for(int i = 0; i < test_dim; i++)
+     		{
+     			d[i] = (int*)malloc(sizeof(int) * test_dim);
+     			c[i] = (int*)malloc(sizeof(int) * test_dim);
+     		}
+     		for(int i = 0; i < test_dim; i++)
+     		{	
+     			result[i] = (int*)malloc(sizeof(int) * test_dim);
+     			result_std[i] = (int*)malloc(sizeof(int) * test_dim);
+     			for(int j = 0; j < test_dim; j++)
      			{
-     				d[j][i] = 1; 
-     				d[i][j] = 1; 
-     				c[j][i] = 1; 
-     				c[i][j] = 1; 
-     			}
-     			else
+     				result[i][j] = 0; 
+     				result_std[i][j] = 0; 
+     				rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
+     				if(rand_n < 0.5)
+     				{
+     					d[i][j] = 0; 
+     				}
+     				else
+     				{
+     					d[i][j] = 1; 
+     				}
+     				rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
+     				if(rand_n < 0.5)
+     				{
+     					c[i][j] = 0; 
+     				}
+     				else
+     				{
+     					c[i][j] = 1; 
+     				}
+     		}
+     		}
+     		begin_time = clock();
+     		strassen_mat_mul(d,d,result,test_dim);
+     		strass_time = float(clock () - begin_time)/CLOCKS_PER_SEC; 
+     		begin_time = clock();
+     		standard_mat_mul(d,d,result_std,test_dim);
+     		std_time = float(clock () - begin_time)/CLOCKS_PER_SEC;
+     		//Print out dimensions where 1 step strassen beats standard
+     		if(strass_time - std_time < 0)
+     		{
+     			cout << test_dim << endl; 
+     		}
+     	}
+     }
+     else //Random Triangles
+     {
+     	int trials = 1; 
+     	test_dim = 1024; 
+   	 	double p = 0.01;  
+     	c = (int**)malloc(sizeof(int*) * test_dim); 
+     	d = (int**)malloc(sizeof(int*) * test_dim); 
+     	result = (int**)malloc(sizeof(int*) * test_dim); 
+     	result_3 = (int**)malloc(sizeof(int*) * test_dim); 
+     	for(int i = 0; i < test_dim; i++)
+     	{
+     		d[i] = (int*)malloc(sizeof(int) * test_dim);
+     		c[i] = (int*)malloc(sizeof(int) * test_dim);
+     		result[i] = (int*)malloc(sizeof(int) * test_dim);
+     		result_3[i] = (int*)malloc(sizeof(int) * test_dim);
+     	}
+     	for(int m = 0; m < 5; m++)
+     	{
+     		for(int i = 0; i < test_dim; i++)
+     		{	
+     			for(int j = 0; j < test_dim; j++)
      			{
-     				d[j][i] = 0; 
-     				d[i][j] = 0; 
-     				c[j][i] = 0;
-     				c[i][j] = 0; 
+     				result[i][j] = 0; 
+     				result_3[i][j] = 0; 
+     				if(j > i)
+     				{
+     					rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
+     					if(rand_n < p)
+     					{
+     						d[j][i] = 1; 
+     						d[i][j] = 1; 
+     						c[j][i] = 1; 
+     						c[i][j] = 1; 
+     					}
+     					else
+     					{
+     						d[j][i] = 0; 
+     						d[i][j] = 0; 
+     						c[j][i] = 0;
+     						c[i][j] = 0; 
+     					}
+     				}
      			}
      		}
-     		//Fill up matrices with some arbitrary values - you can change this
-     		//d[i][j] = (i % 2) * -1 + (i + 1) * (j + 1); 
-     		//c[i][j] = 2 * (j + 1) * (i + 1);
+     		//run 10 trials
+     		count = 0; 
+     		for(int i = 0; i < trials; i++)
+     		{
+     			strassen_mat_mul(d,d,result,test_dim);
+     			strassen_mat_mul(result,d,result_3,test_dim);
+     			for(int j= 0; j < test_dim; j++)
+     			{
+     				count += result_3[j][j]; 
+     			}
+     			zero_buf(result, test_dim); 
+     			zero_buf(result_3, test_dim); 
+     		}
+     		count /= (6 * trials); 
+     		cout << "Triangle Count for p = " << p << " is " << count << endl;
+     		p += 0.01; 
      	}
+
+
      }
-     /*for(int i = 0; i < test_dim; i++)
-     {
-     	for(int j = 0; j < test_dim; j++)
-     	{
-     		cout << c[i][j] << " "; 
-     	}
-     	cout << endl; 
-     }
-     cout << endl; 
-     for(int i = 0; i < test_dim; i++)
-     {
-     	for(int j = 0; j < test_dim; j++)
-     	{
-     		cout << d[i][j] << " "; 
-     	}
-     	cout << endl; 
-     }
-     cout << endl;*/
-	 clock_t begin_time = clock();
-     strassen_mat_mul(d,d,result,test_dim);
-     strassen_mat_mul(result,d,result_3,test_dim);
-     cout << "Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
-     /*for(int i = 0; i < test_dim; i++)
-     {
-     	for(int j = 0; j < test_dim; j++)
-     	{
-     		cout << result[i][j] << " "; 
-     	}
-     	cout << endl; 
-     }
-     cout << endl;*/
-     //zero_buf(result, test_dim); 
-     begin_time = clock();
-     standard_mat_mul(d,d, result_std, test_dim);
-     standard_mat_mul(result_std, d, result_std_3, test_dim);
-     cout << "Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
-     int count = 0; 
-     for(int i = 0; i < test_dim; i++)
-     {
-     	count += result_3[i][i]; 
-     }
-     count /= 6; 
-     cout << "Triangle Count " << count << endl; 
-     /*for(int i = 0; i < test_dim; i++)
-     {
-     	for(int j = 0; j < test_dim; j++)
-     	{
-     		cout << result[i][j] << " "; 
-     	}
-     	cout << endl; 
-     }*/
+
      //Check if std and strassen results are equal
-     cout << "Are standard and strassen equal?:" << matrix_equal(result_3, result_std_3, test_dim) << endl;
+     //cout << "Are standard and strassen equal?:" << matrix_equal(result_3, result_std_3, test_dim) << endl;
+
+
 
     }
     return 0; 
