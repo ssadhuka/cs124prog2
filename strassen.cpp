@@ -413,26 +413,45 @@ int main(int argc, char **argv)
      /*int version = atoi(argv[1]); 
      int dimension = atoi(argv[2]); 
      int filename = atoi(argv[3]); */
-
-   	 int test_dim = 513; 
+   	 srand(time(NULL));
+   	 int test_dim = 1024; 
+   	 double p = 0.03; 
+   	 double rand_n = 0; 
 
      int** c = (int**)malloc(sizeof(int*) * test_dim); 
      int** d = (int**)malloc(sizeof(int*) * test_dim); 
      int** result = (int**)malloc(sizeof(int*) * test_dim); 
      int** result_std = (int**)malloc(sizeof(int*) * test_dim); 
+     int** result_3 = (int**)malloc(sizeof(int*) * test_dim); 
+     int** result_std_3 = (int**)malloc(sizeof(int*) * test_dim); 
      for(int i = 0; i < test_dim; i++)
      {	
      	result[i] = (int*)malloc(sizeof(int) * test_dim);
      	result_std[i] = (int*)malloc(sizeof(int) * test_dim);
+     	result_3[i] = (int*)malloc(sizeof(int) * test_dim);
+     	result_std_3[i] = (int*)malloc(sizeof(int) * test_dim);
      	d[i] = (int*)malloc(sizeof(int) * test_dim);
      	c[i] = (int*)malloc(sizeof(int) * test_dim);
      	for(int j = 0; j < test_dim; j++)
      	{
      		result[i][j] = 0; 
      		result_std[i][j] = 0; 
+     		result_3[i][j] = 0; 
+     		result_std_3[i][j] = 0;
+     		rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
+     		if(rand_n < p)
+     		{
+     			d[i][j] = 1; 
+     			c[i][j] = 1; 
+     		}
+     		else
+     		{
+     			d[i][j] = 0; 
+     			c[i][j] = 0;
+     		}
      		//Fill up matrices with some arbitrary values - you can change this
-     		d[i][j] = (i + 1) * (j + 1); 
-     		c[i][j] = 2 * (j + 1) * (i + 1);
+     		//d[i][j] = (i % 2) * -1 + (i + 1) * (j + 1); 
+     		//c[i][j] = 2 * (j + 1) * (i + 1);
      	}
      }
      /*for(int i = 0; i < test_dim; i++)
@@ -453,9 +472,9 @@ int main(int argc, char **argv)
      	cout << endl; 
      }
      cout << endl;*/
-     srand(time(NULL));
 	 clock_t begin_time = clock();
-     strassen_mat_mul(c,d,result,test_dim);
+     strassen_mat_mul(d,d,result,test_dim);
+     strassen_mat_mul(result,d,result_3,test_dim);
      cout << "Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
      /*for(int i = 0; i < test_dim; i++)
      {
@@ -468,8 +487,16 @@ int main(int argc, char **argv)
      cout << endl;*/
      //zero_buf(result, test_dim); 
      begin_time = clock();
-     standard_mat_mul(c,d, result_std, test_dim);
+     standard_mat_mul(d,d, result_std, test_dim);
+     standard_mat_mul(result_std, d, result_std_3, test_dim);
      cout << "Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
+     int count = 0; 
+     for(int i = 0; i < test_dim; i++)
+     {
+     	count += result_3[i][i]; 
+     }
+     count /= 6; 
+     cout << "Triangle Count" << count << endl; 
      /*for(int i = 0; i < test_dim; i++)
      {
      	for(int j = 0; j < test_dim; j++)
@@ -479,7 +506,7 @@ int main(int argc, char **argv)
      	cout << endl; 
      }*/
      //Check if std and strassen results are equal
-     cout << matrix_equal(result, result_std, test_dim) << endl;
+     cout << "Are standard and strassen equal?:" << matrix_equal(result_3, result_std_3, test_dim) << endl;
 
     }
     return 0; 
