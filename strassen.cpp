@@ -425,29 +425,39 @@ int main(int argc, char **argv)
      int** result_3 = (int**)malloc(sizeof(int*) * test_dim); 
      int** result_std_3 = (int**)malloc(sizeof(int*) * test_dim); 
      for(int i = 0; i < test_dim; i++)
+     {
+     	d[i] = (int*)malloc(sizeof(int) * test_dim);
+     	c[i] = (int*)malloc(sizeof(int) * test_dim);
+     }
+     for(int i = 0; i < test_dim; i++)
      {	
      	result[i] = (int*)malloc(sizeof(int) * test_dim);
      	result_std[i] = (int*)malloc(sizeof(int) * test_dim);
      	result_3[i] = (int*)malloc(sizeof(int) * test_dim);
      	result_std_3[i] = (int*)malloc(sizeof(int) * test_dim);
-     	d[i] = (int*)malloc(sizeof(int) * test_dim);
-     	c[i] = (int*)malloc(sizeof(int) * test_dim);
      	for(int j = 0; j < test_dim; j++)
      	{
      		result[i][j] = 0; 
      		result_std[i][j] = 0; 
      		result_3[i][j] = 0; 
      		result_std_3[i][j] = 0;
-     		rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
-     		if(rand_n < p)
+     		if(j > i)
      		{
-     			d[i][j] = 1; 
-     			c[i][j] = 1; 
-     		}
-     		else
-     		{
-     			d[i][j] = 0; 
-     			c[i][j] = 0;
+     			rand_n = ((float)(rand()))/((float)(RAND_MAX)); 
+     			if(rand_n < p)
+     			{
+     				d[j][i] = 1; 
+     				d[i][j] = 1; 
+     				c[j][i] = 1; 
+     				c[i][j] = 1; 
+     			}
+     			else
+     			{
+     				d[j][i] = 0; 
+     				d[i][j] = 0; 
+     				c[j][i] = 0;
+     				c[i][j] = 0; 
+     			}
      		}
      		//Fill up matrices with some arbitrary values - you can change this
      		//d[i][j] = (i % 2) * -1 + (i + 1) * (j + 1); 
@@ -496,7 +506,7 @@ int main(int argc, char **argv)
      	count += result_3[i][i]; 
      }
      count /= 6; 
-     cout << "Triangle Count" << count << endl; 
+     cout << "Triangle Count " << count << endl; 
      /*for(int i = 0; i < test_dim; i++)
      {
      	for(int j = 0; j < test_dim; j++)
